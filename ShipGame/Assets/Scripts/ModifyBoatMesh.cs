@@ -4,6 +4,13 @@ using UnityEngine;
 
 public class ModifyBoatMesh : MonoBehaviour
 {
+    public object underWaterTriangleData;
+
+    public ModifyBoatMesh(GameObject boatObject)
+    {
+        
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -12,6 +19,16 @@ public class ModifyBoatMesh : MonoBehaviour
 
     // Update is called once per frame
     void Update()
+    {
+        
+    }
+
+    public void GenerateUnderWaterMesh()
+    {
+        
+    }
+
+    public void DisplayMesh(Mesh underWaterMesh, string underwaterMesh, object underWaterTriangleData)
     {
         
     }
