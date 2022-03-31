@@ -4,11 +4,18 @@ using UnityEngine;
 
 public class ModifyBoatMesh : MonoBehaviour
 {
-    public object underWaterTriangleData;
+    private Transform boatTransform;
+    private Vector3[] boatVertices;
+    private int[] boatTriangles;
+
+    public Vector3[] boatVerticesGlobalPos;
+    private float[] allDistancesToWater;
+    
+    public List<TriangleData> underWaterTriangleData = new List<TriangleData>();
 
     public ModifyBoatMesh(GameObject boatObject)
     {
-        
+
     }
 
     // Start is called before the first frame update
