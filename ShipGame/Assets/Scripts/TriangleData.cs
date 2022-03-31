@@ -20,7 +20,7 @@ public struct TriangleData
 
     public float triangleArea;
 
-    // defines structure of TriangleData
+    // defines structure of TriangleData and calculates properties of the triangle
     public TriangleData(Vector3 vertA, Vector3 vertB, Vector3 vertC)
     {
         vertexA = vertA;
@@ -36,7 +36,7 @@ public struct TriangleData
 
         float lengthAC = Vector3.Distance(vertA, vertC);
         float lengthBC = Vector3.Distance(vertB, vertC);
-
+        
         triangleArea = lengthAC * lengthBC * Mathf.Sin(Vector3.Angle(vertC - vertA, vertC - vertB) * Mathf.Deg2Rad) /
                        2f;
     }

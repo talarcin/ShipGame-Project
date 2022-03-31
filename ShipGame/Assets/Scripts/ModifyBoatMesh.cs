@@ -15,27 +15,38 @@ public class ModifyBoatMesh : MonoBehaviour
 
     public ModifyBoatMesh(GameObject boatObject)
     {
+        boatTransform = boatObject.transform;
 
+        boatVertices = boatObject.GetComponent<MeshFilter>().mesh.vertices;
+        boatTriangles = boatObject.GetComponent<MeshFilter>().mesh.triangles;
+
+        boatVerticesGlobalPos = new Vector3[boatVertices.Length];
+        allDistancesToWater = new float[boatVertices.Length];
     }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
+    
     public void GenerateUnderWaterMesh()
     {
-        
+        underWaterTriangleData.Clear();
+
+        for (int i = 0; 0 < boatVertices.Length; i++)
+        {
+            Vector3 globalPos = boatTransform.TransformPoint(boatVertices[i]);
+
+            boatVerticesGlobalPos[i] = globalPos;
+
+            allDistancesToWater[i] = WaterController.instance.DistanceToWater(globalPos, Time.time);
+        }
+
+        AddTriangles();
     }
 
-    public void DisplayMesh(Mesh underWaterMesh, string underwaterMesh, object underWaterTriangleData)
+    private void AddTriangles()
+    {
+        throw new System.NotImplementedException();
+    }
+
+
+    public void DisplayMesh(Mesh mesh, string name, List<TriangleData> trianglesData)
     {
         
     }
