@@ -7,7 +7,7 @@ using UnityEngine;
 
 public class BoatPhysics : MonoBehaviour
 {
-    [SerializeField] private GameObject underWaterObject;
+    public GameObject underWaterObject;
 
     private Mesh underWaterMesh;
     private float waterDensity = 1027f;
@@ -19,10 +19,9 @@ public class BoatPhysics : MonoBehaviour
     {
         // Get boat's RigidBody
         boatRB = gameObject.GetComponent<Rigidbody>();
-
-        // not new ModifyBoatMesh(gameObject) anymore?
+        
         // Initialization of script that will modify boat mesh
-        modifyBoatMesh = gameObject.AddComponent<ModifyBoatMesh>();
+        modifyBoatMesh = new ModifyBoatMesh(gameObject);
 
         // Meshes that are below and above the water
         underWaterMesh = underWaterObject.GetComponent<MeshFilter>().mesh;
@@ -35,7 +34,7 @@ public class BoatPhysics : MonoBehaviour
         modifyBoatMesh.GenerateUnderWaterMesh();
 
         // Display under water mesh
-        modifyBoatMesh.DisplayMesh(underWaterMesh, "UnderWater Mesh", modifyBoatMesh.underWaterTriangleData);
+        modifyBoatMesh.DisplayMesh(underWaterMesh, "UnderWaterMesh", modifyBoatMesh.underWaterTriangleData);
     }
 
     private void FixedUpdate()
@@ -68,7 +67,7 @@ public class BoatPhysics : MonoBehaviour
             Debug.DrawRay(triangle.triangleCenter, triangle.triangleNormalVect * 3f, Color.white);
 
             // display force vector
-            Debug.DrawLine(triangle.triangleCenter, buoyancyForce.normalized * -3f, Color.blue);
+            Debug.DrawRay(triangle.triangleCenter, buoyancyForce.normalized * -3f, Color.blue);
         }
     }
 

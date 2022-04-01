@@ -23,21 +23,21 @@ public struct TriangleData
     // defines structure of TriangleData and calculates properties of the triangle
     public TriangleData(Vector3 vertA, Vector3 vertB, Vector3 vertC)
     {
-        vertexA = vertA;
-        vertexB = vertB;
-        vertexC = vertC;
+        this.vertexA = vertA;
+        this.vertexB = vertB;
+        this.vertexC = vertC;
 
-        triangleCenter = (vertA + vertB + vertC) / 3f;
+        this.triangleCenter = (vertA + vertB + vertC) / 3f;
 
-        distFromTriangleCenterToSurface =
+        this.distFromTriangleCenterToSurface =
             Mathf.Abs(WaterController.instance.DistanceToWater(triangleCenter, Time.time));
 
-        triangleNormalVect = Vector3.Cross(vertB - vertA, vertC + vertA);
+        this.triangleNormalVect = Vector3.Cross(vertB - vertA, vertC - vertA).normalized;
 
-        float lengthAC = Vector3.Distance(vertA, vertC);
-        float lengthBC = Vector3.Distance(vertB, vertC);
+        float lengthAB = Vector3.Distance(vertA, vertB);
+        float lengthCA = Vector3.Distance(vertC, vertA);
         
-        triangleArea = lengthAC * lengthBC * Mathf.Sin(Vector3.Angle(vertC - vertA, vertC - vertB) * Mathf.Deg2Rad) /
+        this.triangleArea = lengthAB * lengthCA * Mathf.Sin(Vector3.Angle(vertB - vertA, vertC - vertA) * Mathf.Deg2Rad) /
                        2f;
     }
 }

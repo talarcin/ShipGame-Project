@@ -12,12 +12,6 @@ public class WaterController : MonoBehaviour
         instance = this;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
     public float GetWaveYPos(Vector3 position, float timeSinceStart)
     {
         return 0f;
