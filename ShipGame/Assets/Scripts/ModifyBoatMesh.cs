@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using Vector3 = UnityEngine.Vector3;
 
@@ -193,13 +194,76 @@ public class ModifyBoatMesh : MonoBehaviour
         
         // save the new underwater triangles
         underWaterTriangleData.Add(new TriangleData(C, intersectionPointC, B));
-        underWaterTriangleData.Add((new TriangleData(B, intersectionPointC, intersectionPointB)));
+        underWaterTriangleData.Add(new TriangleData(B, intersectionPointC, intersectionPointB));
     }
 
     // building one new triangle from the old one (with two vertices above the water)
     private void AddTrianglesTwoAboveWater(List<VertexData> vertexData)
     {
-        throw new System.NotImplementedException();
+        // we say, A and B are above the water, so C is underwater;
+        // per definition of the triangle in comments in AddTrianglesOneAboveWater we know,
+        // that C is the last vertex in the vertexData list (since sorted)
+        Vector3 C = vertexData[2].globalPos;
+        
+        // to find A, which is to the left of C, we have to check whether
+        // Cs vertexData[2].index + 1 is bigger or smaller than 2
+        // (since A comes after C in clockwise direction)
+        int indexA = vertexData[2].index + 1;
+
+        if (indexA > 2)
+        {
+            indexA = 0;
+        }
+
+        float heightToWaterC = vertexData[2].distanceToWater;
+        float heightToWaterA = 0f;
+        float heightToWaterB = 0f;
+        
+        Vector3 A = Vector3.zero;
+        Vector3 B = Vector3.zero;
+        
+        // check at which position A and B are in the list and assign vertices accordingly
+        if (vertexData[0].index == indexA)
+        {
+            A = vertexData[0].globalPos;
+            B = vertexData[1].globalPos;
+
+            heightToWaterA = vertexData[0].distanceToWater;
+            heightToWaterB = vertexData[1].distanceToWater;
+        }
+        else
+        {
+            A = vertexData[1].globalPos;
+            B = vertexData[0].globalPos;
+
+            heightToWaterA = vertexData[1].distanceToWater;
+            heightToWaterB = vertexData[0].distanceToWater;   
+        }
+        
+        // calculate the intersection points along AC and BC
+        
+        // Calculation for intersection point along AC
+        Vector3 CA = A - C;
+        
+        // factor for calculation length from C to intersection point
+        float sA = -heightToWaterC / (heightToWaterA - heightToWaterC);
+
+        Vector3 toIntersectionPointA = sA * CA;
+
+        Vector3 intersectionPointA = C + toIntersectionPointA;
+        
+        // Calculation for intersection point along AB
+        Vector3 CB = B - C;
+        
+        // factor for calculation length from C to intersection point
+        float sB = -heightToWaterC / (heightToWaterB - heightToWaterC);
+
+        Vector3 toIntersectionPointB = sB * CB;
+
+        Vector3 intersectionPointB = C + CB;
+        
+        // save new triangle to underwater triangles list
+        underWaterTriangleData.Add(new TriangleData(C, intersectionPointA, intersectionPointB));
     }
 
 
