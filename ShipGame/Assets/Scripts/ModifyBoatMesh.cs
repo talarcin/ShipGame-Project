@@ -266,8 +266,41 @@ public class ModifyBoatMesh : MonoBehaviour
         underWaterTriangleData.Add(new TriangleData(C, intersectionPointA, intersectionPointB));
     }
 
-
+    // display underwater mesh
     public void DisplayMesh(Mesh mesh, string name, List<TriangleData> trianglesData)
     {
+        List<Vector3> vertices = new List<Vector3>();
+        List<int> triangles = new List<int>();
+        
+        // Build the new underwater mesh
+        for (int i = 0; i < trianglesData.Count; i++)
+        {
+            // transform global to local coordinates
+            Vector3 vertA = boatTransform.InverseTransformPoint(trianglesData[i].vertexA);
+            Vector3 vertB = boatTransform.InverseTransformPoint(trianglesData[i].vertexB);
+            Vector3 vertC = boatTransform.InverseTransformPoint(trianglesData[i].vertexC);
+            
+            vertices.Add(vertA);
+            triangles.Add(vertices.Count - 1);
+
+            vertices.Add(vertB);
+            triangles.Add(vertices.Count - 1);
+            
+            vertices.Add(vertC);
+            triangles.Add(vertices.Count - 1);
+        }
+        
+        // remove the old mesh
+        mesh.Clear();
+        
+        // give new mesh a name
+        mesh.name = name;
+        
+        // add new vertices and triangles to mesh
+        mesh.vertices = vertices.ToArray();
+        mesh.triangles = triangles.ToArray();
+        
+        // recalculate bounding volume, since vertices have been modified
+        mesh.RecalculateBounds();
     }
 }

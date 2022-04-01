@@ -13,17 +13,17 @@ public class BoatPhysics : MonoBehaviour
     private float waterDensity = 1027f;
     private ModifyBoatMesh modifyBoatMesh;
     private Rigidbody boatRB;
-    
+
     // Start is called before the first frame update
     private void Start()
     {
         // Get boat's RigidBody
         boatRB = gameObject.GetComponent<Rigidbody>();
-        
+
         // not new ModifyBoatMesh(gameObject) anymore?
         // Initialization of script that will modify boat mesh
         modifyBoatMesh = gameObject.AddComponent<ModifyBoatMesh>();
-        
+
         // Meshes that are below and above the water
         underWaterMesh = underWaterObject.GetComponent<MeshFilter>().mesh;
     }
@@ -36,5 +36,63 @@ public class BoatPhysics : MonoBehaviour
 
         // Display under water mesh
         modifyBoatMesh.DisplayMesh(underWaterMesh, "UnderWater Mesh", modifyBoatMesh.underWaterTriangleData);
+    }
+
+    private void FixedUpdate()
+    {
+        // add forces to underwater boat parts
+        if (modifyBoatMesh.underWaterTriangleData.Count > 0)
+        {
+            AddUnderWaterForces();
+        }
+    }
+
+    // adds forces to surfaces underwater
+    private void AddUnderWaterForces()
+    {
+        List<TriangleData> underWaterTriangles = modifyBoatMesh.underWaterTriangleData;
+
+        // iterate over all underwater triangles and add buoyancy force
+        for (int i = 0; i < underWaterTriangles.Count; i++)
+        {
+            TriangleData triangle = underWaterTriangles[i];
+
+            Vector3 buoyancyForce = CalculateBuoyancyForce(waterDensity, triangle);
+
+            boatRB.AddForceAtPosition(buoyancyForce, triangle.triangleCenter);
+
+
+            // for debugging
+
+            // display triangle normal vector
+            Debug.DrawRay(triangle.triangleCenter, triangle.triangleNormalVect * 3f, Color.white);
+
+            // display force vector
+            Debug.DrawLine(triangle.triangleCenter, buoyancyForce.normalized * -3f, Color.blue);
+        }
+    }
+
+    private Vector3 CalculateBuoyancyForce(float density, TriangleData triangle)
+    {
+        /* calculate buoyancy force according to:
+         * force_buoyancy = density * g * V with
+         * g - gravitational acceleration
+         * V- volume of fluid directly above curved surface
+         *
+         * V = z * S * n with
+         * z - distance to surface
+         * S - surface area
+         * n - normal to the surface
+         */
+
+        Vector3 buoyancyForce = density * Physics.gravity.y * triangle.distFromTriangleCenterToSurface *
+                                triangle.triangleArea * triangle.triangleNormalVect;
+        
+        // horitontal forces cancel out at the end
+
+        buoyancyForce.x = 0f;
+        buoyancyForce.z = 0f;
+
+        return buoyancyForce;
     }
 }
