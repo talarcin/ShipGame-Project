@@ -52,12 +52,12 @@
     <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>
   </PropertyGroup>
   <ItemGroup>
-     <Compile Include="Assets\Scripts\BoatPhysics.cs" />
-     <Compile Include="Assets\Scripts\GameManager.cs" />
-     <Compile Include="Assets\Scripts\FlyAround.cs" />
      <Compile Include="Assets\Scripts\ModifyBoatMesh.cs" />
-     <Compile Include="Assets\Scripts\TriangleData.cs" />
+     <Compile Include="Assets\Scripts\BoatPhysics.cs" />
      <Compile Include="Assets\Scripts\WaterController.cs" />
+     <Compile Include="Assets\Scripts\GameManager.cs" />
+     <Compile Include="Assets\Scripts\TriangleData.cs" />
+     <Compile Include="Assets\Scripts\FlyAround.cs" />
  <Reference Include="UnityEngine">
  <HintPath>C:/Program Files/Unity/Hub/Editor/2020.3.30f1/Editor/Data/Managed/UnityEngine/UnityEngine.dll</HintPath>
  </Reference>
