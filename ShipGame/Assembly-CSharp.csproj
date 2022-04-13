@@ -55,6 +55,7 @@
      <Compile Include="Assets\Scripts\ModifyBoatMesh.cs" />
      <Compile Include="Assets\Scripts\BoatPhysics.cs" />
      <Compile Include="Assets\Scripts\WaterController.cs" />
+     <Compile Include="Assets\Scripts\WaveTypes.cs" />
      <Compile Include="Assets\Scripts\GameManager.cs" />
      <Compile Include="Assets\Scripts\TriangleData.cs" />
      <Compile Include="Assets\Scripts\FlyAround.cs" />
