@@ -9,10 +9,13 @@ public class EndlessWaterSquare : MonoBehaviour
 
     public GameObject waterSquareObj;
 
-    private float squareWidth = 800f;
+    private float squareWidth = 400f;
     private float innerSquareRes = 5f;
 
-    private float seconsSinceStart;
+    private WaterSquare waterSquare;
+    private List<WaterSquare> waterSquares = new List<WaterSquare>();
+
+    private float secondsSinceStart;
     private Vector3 boatPos;
     private Vector3 oceanPos;
 
@@ -22,14 +25,55 @@ public class EndlessWaterSquare : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        CreateWaterPlane();
+        CreateSea();
 
-        seconsSinceStart = Time.time;
+        secondsSinceStart = Time.time;
 
-        ThreadPool.QueueUserWorkItem(new WaitCallback(UpdateWaterWithThreadPooling));
+        ThreadPool.QueueUserWorkItem(UpdateWaterWithThreadPooling);
 
         StartCoroutine(UpdateWater());
+    }
 
+    // Update is called once per frame
+    void Update()
+    {
+        secondsSinceStart = Time.time;
+
+        boatPos = boatObj.transform.position;
+    }
+
+    void UpdateWaterWithThreadPooling(object state)
+    {
+        MoveWaterToBoat();
+
+        Vector3 centerPos = waterSquare.centerPos;
+        Vector3[] vertices = waterSquare.vertices;
+
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            Vector3 vertexPos = vertices[i];
+
+            // can't use transform point in thread
+            Vector3 vertexGlobal = vertexPos + centerPos + oceanPos;
+            vertexPos.y = WaterController.instance.GetWaveYPos(vertexGlobal, secondsSinceStart);
+            vertices[i] = vertexPos;
+        }
+
+        hasThreadUpdatedWater = true;
+        
+        Debug.Log("Thread updated");
+    }
+
+    private void MoveWaterToBoat()
+    {
+        float x = innerSquareRes * (int) Mathf.Round(boatPos.x / innerSquareRes);
+        float z = innerSquareRes * (int) Mathf.Round(boatPos.z / innerSquareRes);
+
+        if (oceanPos.x != x || oceanPos.z != z)
+        {
+            Debug.Log("Moved Sea");
+            oceanPos = new Vector3(x, oceanPos.y, z);
+        }
     }
 
     IEnumerator UpdateWater()
@@ -38,26 +82,46 @@ public class EndlessWaterSquare : MonoBehaviour
         {
             if (hasThreadUpdatedWater)
             {
+                // move water to boat position
                 transform.position = oceanPos;
+
+                waterSquare.terrainMeshFilter.mesh.vertices = waterSquare.vertices;
+                waterSquare.terrainMeshFilter.mesh.RecalculateNormals();
+
+                hasThreadUpdatedWater = false;
+
+                ThreadPool.QueueUserWorkItem(UpdateWaterWithThreadPooling);
             }
+
+            yield return new WaitForSeconds(Time.deltaTime * 3f);
         }
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        seconsSinceStart = Time.time;
-
-        boatPos = boatObj.transform.position;
-    }
     
-    private void CreateWaterPlane()
+    private void CreateSea()
     {
-        throw new System.NotImplementedException();
+        AddWaterPlane(0f, 0f, 0f, squareWidth, innerSquareRes);
     }
 
-    void UpdateWaterWithThreadPooling(object state)
+    private void AddWaterPlane(float xCoordinate, float zCoordinate, float yPosition, float squareWidth, float spacing)
     {
-        throw new System.NotImplementedException();
+        GameObject waterPlane = Instantiate(waterSquareObj, transform.position, transform.rotation);
+        
+        waterPlane.SetActive(true);
+        
+        // change water plane position
+        Vector3 centerPos = transform.position;
+
+        centerPos.x += xCoordinate;
+        centerPos.z += zCoordinate;
+        centerPos.y = yPosition;
+
+        waterPlane.transform.position = centerPos;
+        
+        // parent water plane to sea
+        waterPlane.transform.parent = transform;
+
+        WaterSquare newWaterSquare = new WaterSquare(waterPlane, squareWidth, spacing);
+
+        waterSquare = newWaterSquare;
     }
 }
