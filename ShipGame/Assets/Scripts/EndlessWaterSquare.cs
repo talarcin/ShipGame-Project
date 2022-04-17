@@ -9,10 +9,9 @@ public class EndlessWaterSquare : MonoBehaviour
 
     public GameObject waterSquareObj;
 
-    private float squareWidth = 400f;
-    private float innerSquareRes = 5f;
-
-    private WaterSquare waterSquare;
+    private float squareWidth = 50f;
+    private float innerSquareRes = 2f;
+    
     private List<WaterSquare> waterSquares = new List<WaterSquare>();
 
     private float secondsSinceStart;
@@ -29,7 +28,7 @@ public class EndlessWaterSquare : MonoBehaviour
 
         secondsSinceStart = Time.time;
 
-        ThreadPool.QueueUserWorkItem(UpdateWaterWithThreadPooling);
+        ThreadPool.QueueUserWorkItem(new WaitCallback(UpdateWaterWithThreadPooling));
 
         StartCoroutine(UpdateWater());
     }
@@ -46,21 +45,25 @@ public class EndlessWaterSquare : MonoBehaviour
     {
         MoveWaterToBoat();
 
-        Vector3 centerPos = waterSquare.centerPos;
-        Vector3[] vertices = waterSquare.vertices;
-
-        for (int i = 0; i < vertices.Length; i++)
+        for (int j = 0; j < waterSquares.Count; j++)
         {
-            Vector3 vertexPos = vertices[i];
+            Vector3 centerPos = waterSquares[j].centerPos;
+            Vector3[] vertices = waterSquares[j].vertices;
 
-            // can't use transform point in thread
-            Vector3 vertexGlobal = vertexPos + centerPos + oceanPos;
-            vertexPos.y = WaterController.instance.GetWaveYPos(vertexGlobal, secondsSinceStart);
-            vertices[i] = vertexPos;
+
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                Vector3 vertexPos = vertices[i];
+
+                // can't use transform point in thread
+                Vector3 vertexGlobal = vertexPos + centerPos + oceanPos;
+                vertexPos.y = WaterController.instance.GetWaveYPos(vertexGlobal, secondsSinceStart);
+                vertices[i] = vertexPos;
+            }
         }
 
         hasThreadUpdatedWater = true;
-        
+
         Debug.Log("Thread updated");
     }
 
@@ -78,6 +81,7 @@ public class EndlessWaterSquare : MonoBehaviour
 
     IEnumerator UpdateWater()
     {
+        Debug.Log("UpdateWater called");
         while (true)
         {
             if (hasThreadUpdatedWater)
@@ -85,18 +89,21 @@ public class EndlessWaterSquare : MonoBehaviour
                 // move water to boat position
                 transform.position = oceanPos;
 
-                waterSquare.terrainMeshFilter.mesh.vertices = waterSquare.vertices;
-                waterSquare.terrainMeshFilter.mesh.RecalculateNormals();
+                for (int i = 0; i < waterSquares.Count; i++)
+                {
+                    waterSquares[i].terrainMeshFilter.mesh.vertices = waterSquares[i].vertices;
+                    waterSquares[i].terrainMeshFilter.mesh.RecalculateNormals();
+                }
 
                 hasThreadUpdatedWater = false;
 
-                ThreadPool.QueueUserWorkItem(UpdateWaterWithThreadPooling);
+                ThreadPool.QueueUserWorkItem(new WaitCallback(UpdateWaterWithThreadPooling));
             }
-
+            
             yield return new WaitForSeconds(Time.deltaTime * 3f);
         }
     }
-    
+
     private void CreateSea()
     {
         AddWaterPlane(0f, 0f, 0f, squareWidth, innerSquareRes);
@@ -105,9 +112,9 @@ public class EndlessWaterSquare : MonoBehaviour
     private void AddWaterPlane(float xCoordinate, float zCoordinate, float yPosition, float squareWidth, float spacing)
     {
         GameObject waterPlane = Instantiate(waterSquareObj, transform.position, transform.rotation);
-        
+
         waterPlane.SetActive(true);
-        
+
         // change water plane position
         Vector3 centerPos = transform.position;
 
@@ -116,12 +123,12 @@ public class EndlessWaterSquare : MonoBehaviour
         centerPos.y = yPosition;
 
         waterPlane.transform.position = centerPos;
-        
+
         // parent water plane to sea
         waterPlane.transform.parent = transform;
 
         WaterSquare newWaterSquare = new WaterSquare(waterPlane, squareWidth, spacing);
 
-        waterSquare = newWaterSquare;
+        waterSquares.Add(newWaterSquare);
     }
 }
