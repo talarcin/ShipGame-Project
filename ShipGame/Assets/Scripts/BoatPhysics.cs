@@ -12,13 +12,13 @@ public class BoatPhysics : MonoBehaviour
     private Mesh underWaterMesh;
     private float waterDensity = 1027f;
     private ModifyBoatMesh modifyBoatMesh;
-    private Rigidbody boatRB;
+    private Rigidbody boatRb;
 
     // Start is called before the first frame update
     private void Start()
     {
         // Get boat's RigidBody
-        boatRB = gameObject.GetComponent<Rigidbody>();
+        boatRb = gameObject.GetComponent<Rigidbody>();
         
         // Initialization of script that will modify boat mesh
         modifyBoatMesh = new ModifyBoatMesh(gameObject);
@@ -58,7 +58,7 @@ public class BoatPhysics : MonoBehaviour
 
             Vector3 buoyancyForce = CalculateBuoyancyForce(waterDensity, triangle);
 
-            boatRB.AddForceAtPosition(buoyancyForce, triangle.triangleCenter);
+            boatRb.AddForceAtPosition(buoyancyForce, triangle.triangleCenter);
 
 
             // for debugging

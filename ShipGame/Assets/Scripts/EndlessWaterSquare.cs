@@ -9,8 +9,9 @@ public class EndlessWaterSquare : MonoBehaviour
 
     public GameObject waterSquareObj;
 
-    private float squareWidth = 50f;
-    private float innerSquareRes = 2f;
+    private float squareWidth = 800f;
+    private float innerSquareRes = 5f;
+    private float outerSquareRes = 25f;
     
     private List<WaterSquare> waterSquares = new List<WaterSquare>();
 
@@ -79,9 +80,9 @@ public class EndlessWaterSquare : MonoBehaviour
         }
     }
 
+    // ReSharper disable Unity.PerformanceAnalysis
     IEnumerator UpdateWater()
     {
-        Debug.Log("UpdateWater called");
         while (true)
         {
             if (hasThreadUpdatedWater)
@@ -107,6 +108,20 @@ public class EndlessWaterSquare : MonoBehaviour
     private void CreateSea()
     {
         AddWaterPlane(0f, 0f, 0f, squareWidth, innerSquareRes);
+
+        for (int x = -1; x <= 1; x += 1)
+        {
+            for (int z = -1; z <= 1; z += 1)
+            {
+                if (x == 0 && z == 0)
+                {
+                    continue;
+                }
+
+                float yPos = -0.5f;
+                AddWaterPlane(x * squareWidth, z * squareWidth, yPos, squareWidth, outerSquareRes);
+            }
+        }
     }
 
     private void AddWaterPlane(float xCoordinate, float zCoordinate, float yPosition, float squareWidth, float spacing)

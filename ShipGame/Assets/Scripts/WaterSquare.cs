@@ -15,12 +15,12 @@ public class WaterSquare
     public Vector3 centerPos;
     public Vector3[] vertices;
 
-    public WaterSquare(GameObject waterSquareObj, float size, float spacing)
+    public WaterSquare(GameObject waterSquareObj, float squareSize, float squareSpacing)
     {
-        this.size = size;
-        this.spacing = spacing;
-        this.squareTransform = waterSquareObj.transform;
-        this.terrainMeshFilter = squareTransform.GetComponent<MeshFilter>();
+        size = squareSize;
+        spacing = squareSpacing;
+        squareTransform = waterSquareObj.transform;
+        terrainMeshFilter = squareTransform.GetComponent<MeshFilter>();
 
         // calculate properties of square
         width = (int) (size / spacing);
@@ -32,7 +32,7 @@ public class WaterSquare
         squareTransform.position += newPos;
 
         // save center position of the water square
-        this.centerPos = waterSquareObj.transform.localPosition;
+        centerPos = waterSquareObj.transform.localPosition;
 
         // Now we generate the sea
 
