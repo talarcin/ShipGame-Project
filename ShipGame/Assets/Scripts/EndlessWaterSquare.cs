@@ -37,6 +37,8 @@ public class EndlessWaterSquare : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        UpdateWaterNoThread();
+        
         secondsSinceStart = Time.time;
 
         boatPos = boatObj.transform.position;
@@ -66,6 +68,25 @@ public class EndlessWaterSquare : MonoBehaviour
         hasThreadUpdatedWater = true;
 
         Debug.Log("Thread updated");
+    }
+    
+    //Update the water with no thread to compare 
+    void UpdateWaterNoThread()
+    {
+        //Update the position of the boat
+        boatPos = boatObj.transform.position;
+
+        //Move the water to the boat
+        MoveWaterToBoat();
+
+        //Add the new position of the ocean to this transform
+        transform.position = oceanPos;
+
+        //Update the vertices
+        for (int i = 0; i < waterSquares.Count; i++)
+        {
+            waterSquares[i].MoveSea(oceanPos, Time.time);
+        }
     }
 
     private void MoveWaterToBoat()
@@ -109,7 +130,7 @@ public class EndlessWaterSquare : MonoBehaviour
     {
         AddWaterPlane(0f, 0f, 0f, squareWidth, innerSquareRes);
 
-        for (int x = -1; x <= 1; x += 1)
+        /* for (int x = -1; x <= 1; x += 1)
         {
             for (int z = -1; z <= 1; z += 1)
             {
@@ -122,6 +143,7 @@ public class EndlessWaterSquare : MonoBehaviour
                 AddWaterPlane(x * squareWidth, z * squareWidth, yPos, squareWidth, outerSquareRes);
             }
         }
+        */
     }
 
     private void AddWaterPlane(float xCoordinate, float zCoordinate, float yPosition, float squareWidth, float spacing)

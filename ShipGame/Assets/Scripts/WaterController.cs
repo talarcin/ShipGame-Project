@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.PlasticSCM.Editor.WebApi;
@@ -23,6 +24,16 @@ public class WaterController : MonoBehaviour
     void Start()
     {
         instance = this;
+    }
+
+    private void Update()
+    {
+        Shader.SetGlobalFloat("_WaterScale", scale);
+        Shader.SetGlobalFloat("_WaterSpeed", speed);
+        Shader.SetGlobalFloat("_WaterDistance", waveDistance);
+        Shader.SetGlobalFloat("_WaterTime", Time.time);
+        Shader.SetGlobalFloat("_WaterNoiseStrength", noiseStrength);
+        Shader.SetGlobalFloat("_WaterNoiseWalk", noiseWalk);
     }
 
     public float GetWaveYPos(Vector3 position, float timeSinceStart)
