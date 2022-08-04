@@ -16,12 +16,18 @@ public struct TriangleData
 
     public float distFromTriangleCenterToSurface;
 
-    public Vector3 triangleNormalVect;
+    public Vector3 normal;
 
-    public float triangleArea;
+    public float area;
+
+    public Vector3 velocity;
+    public Vector3 velocityDir;
+
+    public float cosTheta;
+    
 
     // defines structure of TriangleData and calculates properties of the triangle
-    public TriangleData(Vector3 vertA, Vector3 vertB, Vector3 vertC)
+    public TriangleData(Vector3 vertA, Vector3 vertB, Vector3 vertC, Rigidbody boatRb, float timeSinceStart)
     {
         this.vertexA = vertA;
         this.vertexB = vertB;
@@ -32,12 +38,16 @@ public struct TriangleData
         this.distFromTriangleCenterToSurface =
             Mathf.Abs(WaterController.instance.DistanceToWater(triangleCenter, Time.time));
 
-        this.triangleNormalVect = Vector3.Cross(vertB - vertA, vertC - vertA).normalized;
+        this.normal = Vector3.Cross(vertB - vertA, vertC - vertA).normalized;
 
         float lengthAB = Vector3.Distance(vertA, vertB);
         float lengthCA = Vector3.Distance(vertC, vertA);
         
-        this.triangleArea = lengthAB * lengthCA * Mathf.Sin(Vector3.Angle(vertB - vertA, vertC - vertA) * Mathf.Deg2Rad) /
+        this.area = lengthAB * lengthCA * Mathf.Sin(Vector3.Angle(vertB - vertA, vertC - vertA) * Mathf.Deg2Rad) /
                        2f;
+        this.velocity = BoatPhysicsMath.GetTriangleVelocity(boatRb, this.triangleCenter);
+        this.velocityDir = this.velocity.normalized;
+        this.cosTheta = Vector3.Dot(this.velocityDir, this.normal);
+
     }
 }

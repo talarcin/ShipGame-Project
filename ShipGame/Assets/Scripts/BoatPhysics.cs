@@ -81,7 +81,7 @@ public class BoatPhysics : MonoBehaviour
         CalculateSlammingVelocities(slammingForceData);
 
         float boatArea = modifyBoatMesh.boatArea;
-        float boatMass = VisbyData.mass; // TODO: Replace with boat's total mass
+        float boatMass = 1f; // TODO: Replace with boat's total mass
 
         List<int> indexOfOriginalTriangle = modifyBoatMesh.indexOfOriginalTriangle;
 
@@ -100,10 +100,10 @@ public class BoatPhysics : MonoBehaviour
             forceToAdd += BoatPhysicsMath.BuoyancyForce(waterDensity, triangle);
             
             // viscous water resistance
-            forceToAdd += BoatPhysicsMath.ViscousWaterResistance(waterDensity, triangle, Cf);
+            forceToAdd += BoatPhysicsMath.ViscousWaterResistanceForce(waterDensity, triangle, Cf);
             
             // pressure drag
-            forceToAdd += BoatPhysicsMath.PressureDragDorce(triangle);
+            forceToAdd += BoatPhysicsMath.PressureDragForce(triangle);
             
             // slamming force
             int originalTriangleIndex = indexOfOriginalTriangle[i];
@@ -118,14 +118,14 @@ public class BoatPhysics : MonoBehaviour
             // for debugging
 
             // display triangle normal vector
-            // Debug.DrawRay(triangle.triangleCenter, triangle.triangleNormalVect * 3f, Color.white);
+            // Debug.DrawRay(triangle.triangleCenter, triangle.normal * 3f, Color.white);
 
             // display force vector
             // Debug.DrawRay(triangle.triangleCenter, buoyancyForce.normalized * -3f, Color.blue);
         }
     }
 
-    void AddAboveWaterForce()
+    void AddAboveWaterForces()
     {
         List<TriangleData> aboveWaterTriangleData = modifyBoatMesh.aboveWaterTriangleData;
 
@@ -136,7 +136,7 @@ public class BoatPhysics : MonoBehaviour
             Vector3 forceToAdd = Vector3.zero;
             
             // air resistance
-            forceToAdd += BoatPhysicsMath.AirResistanceForce(airDensity, triangle, VisbyData.C_r);
+            forceToAdd += BoatPhysicsMath.AirResistanceForce(airDensity, triangle, BoatPhysicsMath.C_d_flat_plate_perpendicular_to_flow);
             
             boatRb.AddForceAtPosition(forceToAdd, triangle.triangleCenter);
         }
@@ -152,29 +152,5 @@ public class BoatPhysics : MonoBehaviour
 
             slammingForceData[i].velocity = BoatPhysicsMath.GetTriangleVelocity(boatRb, center);
         }
-    }
-    
-    private Vector3 CalculateBuoyancyForce(float density, TriangleData triangle)
-    {
-        /* calculate buoyancy force according to:
-         * force_buoyancy = density * g * V with
-         * g - gravitational acceleration
-         * V- volume of fluid directly above curved surface
-         *
-         * V = z * S * n with
-         * z - distance to surface
-         * S - surface area
-         * n - normal to the surface
-         */
-
-        Vector3 buoyancyForce = density * Physics.gravity.y * triangle.distFromTriangleCenterToSurface *
-                                triangle.triangleArea * triangle.triangleNormalVect;
-        
-        // horitontal forces cancel out at the end
-
-        buoyancyForce.x = 0f;
-        buoyancyForce.z = 0f;
-
-        return buoyancyForce;
     }
 }

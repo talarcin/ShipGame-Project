@@ -2,17 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SlammingForceData : MonoBehaviour
+public class SlammingForceData
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    public float originalArea;
+    public float submergedArea;
+    public float previousSubmergedArea;
+    public Vector3 triangleCenter;
+    public Vector3 velocity;
+    public Vector3 previousVelocity;
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

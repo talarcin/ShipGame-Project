@@ -11,20 +11,48 @@ public class ModifyBoatMesh
     private Vector3[] boatVertices;
     private int[] boatTriangles;
 
+    private Rigidbody boatRb;
+
     public Vector3[] boatVerticesGlobalPos;
     private float[] allDistancesToWater;
 
+    private Mesh underWaterMesh;
     public List<TriangleData> underWaterTriangleData = new List<TriangleData>();
 
-    public ModifyBoatMesh(GameObject boatObject)
+    public List<TriangleData> aboveWaterTriangleData = new List<TriangleData>();
+
+    private MeshCollider underWaterMeshCollider;
+    
+    // slamming resistance forces
+    public List<SlammingForceData> slammingForceData = new List<SlammingForceData>();
+    public List<int> indexOfOriginalTriangle = new List<int>();
+    public float boatArea;
+
+    private float timeSinceStart;
+
+    public ModifyBoatMesh(GameObject boatObject, GameObject underWaterObject, GameObject aboveWaterObject, Rigidbody boatRb)
     {
         boatTransform = boatObject.transform;
+
+        this.boatRb = boatRb;
+
+        underWaterMeshCollider = underWaterObject.GetComponent<MeshCollider>();
+
+        underWaterMesh = underWaterObject.GetComponent<MeshFilter>().mesh;
 
         boatVertices = boatObject.GetComponent<MeshFilter>().mesh.vertices;
         boatTriangles = boatObject.GetComponent<MeshFilter>().mesh.triangles;
 
         boatVerticesGlobalPos = new Vector3[boatVertices.Length];
         allDistancesToWater = new float[boatVertices.Length];
+        
+        // set up slamming force data
+        for (int i = 0; i < (boatTriangles.Length / 3); i++)
+        {
+            slammingForceData.Add(new SlammingForceData());
+        }
+
+        CalculateOriginalTrianglesArea();
     }
 
     // to store necessary information about triangle vertices
@@ -38,6 +66,16 @@ public class ModifyBoatMesh
     public void GenerateUnderWaterMesh()
     {
         underWaterTriangleData.Clear();
+        aboveWaterTriangleData.Clear();
+
+        for (int j = 0; j < slammingForceData.Count; j++)
+        {
+            slammingForceData[j].previousSubmergedArea = slammingForceData[j].previousSubmergedArea;
+        }
+        
+        indexOfOriginalTriangle.Clear();
+
+        timeSinceStart = Time.time;
 
         for (int i = 0; i < boatVertices.Length; i++)
         {
@@ -62,6 +100,7 @@ public class ModifyBoatMesh
         vertexData.Add(new VertexData());
 
         int i = 0;
+        int triangleCounter = 0;
 
         while (i < boatTriangles.Length)
         {
@@ -80,6 +119,12 @@ public class ModifyBoatMesh
             if (vertexData[0].distanceToWater > 0f && vertexData[1].distanceToWater > 0f &&
                 vertexData[2].distanceToWater > 0f)
             {
+                Vector3 p1 = vertexData[0].globalPos;
+                Vector3 p2 = vertexData[1].globalPos;
+                Vector3 p3 = vertexData[2].globalPos;
+                
+                aboveWaterTriangleData.Add(new TriangleData(p1, p2, p3, boatRb, timeSinceStart));
+                slammingForceData[triangleCounter].submergedArea = 0f;
                 continue;
             }
 
@@ -92,7 +137,11 @@ public class ModifyBoatMesh
                 Vector3 vertB = vertexData[1].globalPos;
                 Vector3 vertC = vertexData[2].globalPos;
 
-                underWaterTriangleData.Add(new TriangleData(vertA, vertB, vertC));
+                underWaterTriangleData.Add(new TriangleData(vertA, vertB, vertC, boatRb, timeSinceStart));
+
+                slammingForceData[triangleCounter].submergedArea = slammingForceData[triangleCounter].originalArea;
+                indexOfOriginalTriangle.Add(triangleCounter);
+
             }
             // if less than three vertices are underwater
             else
@@ -104,19 +153,21 @@ public class ModifyBoatMesh
                 // check if only one vertex is above the water (need to only check second in list, since sorted descending)
                 if (vertexData[1].distanceToWater > 0f)
                 {
-                    AddTrianglesTwoAboveWater(vertexData);
+                    AddTrianglesTwoAboveWater(vertexData, triangleCounter);
                 }
                 // no need to check, since at this point it is obvious, that only one vertex is above the water
                 else
                 {
-                    AddTrianglesOneAboveWater(vertexData);
+                    AddTrianglesOneAboveWater(vertexData, triangleCounter);
                 }
             }
+
+            triangleCounter++;
         }
     }
 
     // building two new triangles from the old one (with one vertex above the water)
-    private void AddTrianglesOneAboveWater(List<VertexData> vertexData)
+    private void AddTrianglesOneAboveWater(List<VertexData> vertexData, int triangleCounter)
     {
         /*
         // new triangle will have vertices A, B and C; A is always at position 0 in vertexData list
@@ -194,12 +245,23 @@ public class ModifyBoatMesh
         Vector3 intersectionPointC = C + toIntersectionPointC;
 
         // save the new underwater triangles
-        underWaterTriangleData.Add(new TriangleData(C, intersectionPointC, intersectionPointB));
-        underWaterTriangleData.Add(new TriangleData(C, intersectionPointB, B));
+        underWaterTriangleData.Add(new TriangleData(C, intersectionPointC, intersectionPointB, boatRb, timeSinceStart));
+        underWaterTriangleData.Add(new TriangleData(C, intersectionPointB, B, boatRb, timeSinceStart));
+        
+        aboveWaterTriangleData.Add(new TriangleData(intersectionPointC, A, intersectionPointB, boatRb, timeSinceStart));
+        
+        // total submerged area
+        float totalArea = BoatPhysicsMath.GetTriangleArea(C, intersectionPointC, intersectionPointB) +
+                          BoatPhysicsMath.GetTriangleArea(C, intersectionPointB, B);
+
+        slammingForceData[triangleCounter].submergedArea = totalArea;
+        
+        indexOfOriginalTriangle.Add(triangleCounter);
+        indexOfOriginalTriangle.Add(triangleCounter);
     }
 
     // building one new triangle from the old one (with two vertices above the water)
-    private void AddTrianglesTwoAboveWater(List<VertexData> vertexData)
+    private void AddTrianglesTwoAboveWater(List<VertexData> vertexData, int triangleCounter)
     {
         // we say, A and B are above the water, so C is underwater;
         // per definition of the triangle in comments in AddTrianglesOneAboveWater we know,
@@ -264,7 +326,15 @@ public class ModifyBoatMesh
         Vector3 intersectionPointB = C + toIntersectionPointB;
 
         // save new triangle to underwater triangles list
-        underWaterTriangleData.Add(new TriangleData(C, intersectionPointA, intersectionPointB));
+        underWaterTriangleData.Add(new TriangleData(C, intersectionPointA, intersectionPointB, boatRb, timeSinceStart));
+        
+        aboveWaterTriangleData.Add(new TriangleData(intersectionPointA, A, intersectionPointB, boatRb, timeSinceStart));
+        aboveWaterTriangleData.Add(new TriangleData(intersectionPointB, A, B, boatRb, timeSinceStart));
+
+        slammingForceData[triangleCounter].submergedArea =
+            BoatPhysicsMath.GetTriangleArea(C, intersectionPointA, intersectionPointB);
+        
+        indexOfOriginalTriangle.Add(triangleCounter);
     }
 
     // display underwater mesh
@@ -303,5 +373,35 @@ public class ModifyBoatMesh
 
         // recalculate bounding volume, since vertices have been modified
         mesh.RecalculateBounds();
+    }
+
+    public float CalculateUnderWaterLength()
+    {
+        float underWaterLength = underWaterMesh.bounds.size.z;
+
+        return underWaterLength;
+    }
+
+    void CalculateOriginalTrianglesArea()
+    {
+        int i = 0;
+        int triangleCounter = 0;
+
+        while (i < boatTriangles.Length)
+        {
+            Vector3 p1 = boatVertices[boatTriangles[i]];
+            i++;
+            
+            Vector3 p2 = boatVertices[boatTriangles[i]];
+            i++;
+            
+            Vector3 p3 = boatVertices[boatTriangles[i]];
+            i++;
+
+            float triangleArea = BoatPhysicsMath.GetTriangleArea(p1, p2, p3);
+            slammingForceData[triangleCounter].originalArea = triangleArea;
+            boatArea += triangleArea;
+            triangleCounter++;
+        }
     }
 }
