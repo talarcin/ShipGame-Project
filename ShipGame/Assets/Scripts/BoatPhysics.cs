@@ -81,7 +81,7 @@ public class BoatPhysics : MonoBehaviour
         CalculateSlammingVelocities(slammingForceData);
 
         float boatArea = modifyBoatMesh.boatArea;
-        float boatMass = 5000f; 
+        float boatMass = 800f; 
 
         List<int> indexOfOriginalTriangle = modifyBoatMesh.indexOfOriginalTriangle;
 

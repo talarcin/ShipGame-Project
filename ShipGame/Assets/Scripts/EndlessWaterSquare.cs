@@ -9,7 +9,7 @@ public class EndlessWaterSquare : MonoBehaviour
 
     public GameObject waterSquareObj;
 
-    private float squareWidth = 40f;
+    private float squareWidth = 20f;
     private float innerSquareRes = 0.5f;
     
     
