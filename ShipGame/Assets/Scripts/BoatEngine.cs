@@ -10,15 +10,14 @@ public class BoatEngine : MonoBehaviour
     public float maxSpeed = 50f;
     public float currentPower;
     private float maxRotationAngle = 45f;
-    
+
     private Vector3 engineRotation = new Vector3(0f, 0f, 0f);
-    
+
     private Rigidbody boatRb;
     private PlayerController playerController;
     public Transform engineTransform;
-    
-    
-    
+
+
     // Start is called before the first frame update
     void Start()
     {
@@ -30,7 +29,7 @@ public class BoatEngine : MonoBehaviour
     {
         float turnInput = Input.GetAxis("Horizontal");
         RotateEngine(turnInput);
-        
+
         float forwardInput = Input.GetAxis("Vertical");
 
         if (forwardInput > 0f)
@@ -44,7 +43,7 @@ public class BoatEngine : MonoBehaviour
         {
             currentPower = 0f;
         }
-        
+
         Thrust();
     }
 
@@ -71,7 +70,7 @@ public class BoatEngine : MonoBehaviour
 
     public void RotateEngine(float factor)
     {
-        engineRotation.y = -factor * 45f;
+        engineRotation.y = -factor * maxRotationAngle;
         engineTransform.localEulerAngles = engineRotation;
     }
 }
