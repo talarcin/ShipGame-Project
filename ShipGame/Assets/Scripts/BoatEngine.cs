@@ -5,31 +5,57 @@ using UnityEngine;
 
 public class BoatEngine : MonoBehaviour
 {
-    public Transform engineTransform;
     public float powerFactor;
     public float maxPower;
+    public float maxSpeed = 50f;
     public float currentPower;
-    private Rigidbody boatRb;
-    private float engineRotation;
+    private float maxRotationAngle = 45f;
     
-    public float MaxPower => maxPower;
-    public float CurrentPower => currentPower;
-
-
+    private Vector3 engineRotation = new Vector3(0f, 0f, 0f);
+    
+    private Rigidbody boatRb;
+    private PlayerController playerController;
+    public Transform engineTransform;
+    
+    
+    
     // Start is called before the first frame update
     void Start()
     {
         boatRb = GetComponentInParent<Rigidbody>();
+        playerController = GetComponentInParent<PlayerController>();
     }
 
-    public void CalculateForce(float scaling)
+    private void FixedUpdate()
+    {
+        float turnInput = Input.GetAxis("Horizontal");
+        RotateEngine(turnInput);
+        
+        float forwardInput = Input.GetAxis("Vertical");
+
+        if (forwardInput > 0f)
+        {
+            if (playerController.CurrentSpeed < maxSpeed && currentPower < maxPower)
+            {
+                CalculateCurrentPower(forwardInput);
+            }
+        }
+        else
+        {
+            currentPower = 0f;
+        }
+        
+        Thrust();
+    }
+
+    public void CalculateCurrentPower(float scaling)
     {
         currentPower += scaling * powerFactor;
     }
 
     public void Thrust()
     {
-        Vector3 forceToAdd = -engineTransform.forward * currentPower;
+        Vector3 forceToAdd = -engineTransform.right * currentPower;
 
         float waveYPos = WaterController.instance.GetWaveYPos(engineTransform.position, Time.time);
 
@@ -41,5 +67,11 @@ public class BoatEngine : MonoBehaviour
         {
             boatRb.AddForceAtPosition(Vector3.zero, engineTransform.position);
         }
+    }
+
+    public void RotateEngine(float factor)
+    {
+        engineRotation.y = -factor * 45f;
+        engineTransform.localEulerAngles = engineRotation;
     }
 }

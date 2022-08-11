@@ -1,46 +1,33 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    BoatEngine boatEngine;
-    private Rigidbody playerRb;
-
-    public float currentSpeed;
-    private float maxSpeed = 50f;
-
+    [SerializeField]
+    private float currentSpeed;
+    
+    public float CurrentSpeed => currentSpeed;
+    
     private Vector3 lastPosition;
-    
-    
+
+
     // Start is called before the first frame update
     void Start()
     {
-        playerRb = gameObject.GetComponent<Rigidbody>();
-        boatEngine = GetComponentInChildren<BoatEngine>();
-
-        lastPosition = transform.position;
+        lastPosition = gameObject.transform.position;
     }
 
-    // Update is called once per frame
-    void FixedUpdate()
+    private void Update()
     {
-        float forwardInput = Input.GetAxis("Vertical");
-        
-        if (boatEngine.CurrentPower < boatEngine.MaxPower && currentSpeed < maxSpeed)
-        {
-            boatEngine.CalculateForce(forwardInput);
-            boatEngine.Thrust();
-        }
-
         CalculateSpeed();
-
     }
 
     private void CalculateSpeed()
     {
-        var position = transform.position;
-        currentSpeed = (position - lastPosition).magnitude / Time.time;
+        var position = gameObject.transform.position;
+        currentSpeed = (position - lastPosition).magnitude / Time.deltaTime;
 
         lastPosition = position;
     }
