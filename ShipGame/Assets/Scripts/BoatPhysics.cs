@@ -22,6 +22,8 @@ public class BoatPhysics : MonoBehaviour
 
     private float waterDensity = BoatPhysicsMath.RHO_OCEAN_WATER;
     private float airDensity = BoatPhysicsMath.RHO_AIR;
+
+    public float boatMass;
     
     private void Awake()
     {
@@ -81,7 +83,6 @@ public class BoatPhysics : MonoBehaviour
         CalculateSlammingVelocities(slammingForceData);
 
         float boatArea = modifyBoatMesh.boatArea;
-        float boatMass = 800f; 
 
         List<int> indexOfOriginalTriangle = modifyBoatMesh.indexOfOriginalTriangle;
 
